@@ -17,17 +17,22 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   const [loaded] = useFonts({});
   const [showSplash, setShowSplash] = useState(true);
+  const [splashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2200);
+    const timer = setTimeout(() => {
+      setSplashVisible(false);
+      setTimeout(() => setShowSplash(false), 1200);
+    }, 2200);
     return () => clearTimeout(timer);
   }, []);
 
-  if (!loaded) return null;
+  // ← hapus if (!loaded) return null
+  // render tetap jalan, splash nutup semuanya
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -35,14 +40,20 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <PaperProvider>
             <StatusBar style="auto" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
+            {loaded && ( // ← stack hanya render kalau font siap
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            )}
             {showSplash && (
-              <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}>
-                <CustomSplash isVisible={showSplash} />
+              <View style={{
+                position: "absolute",
+                top: 0, left: 0, right: 0, bottom: 0,
+                zIndex: 9999,
+              }}>
+                <CustomSplash isVisible={splashVisible} />
               </View>
             )}
           </PaperProvider>
