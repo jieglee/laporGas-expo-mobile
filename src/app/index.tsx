@@ -12,10 +12,8 @@ export default function Index() {
   }, []);
 
   if (loading) return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFCFA" }}>
-      <ActivityIndicator color="#E8541C" />
-    </View>
+    <View style={{ flex: 1, backgroundColor: "#E8541C" }} />
   );
 
-  return <Redirect href={token ? "/(tabs)" : "/(auth)/login" as any} />;
+  return <Redirect href={token ? ("/(tabs)" as any) : "/(auth)/login"} />;
 }
