@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { ArrowRight } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import type { Report } from "@/lib/report";
-import ReportCard from "@/components/common-ui/ReportCard";
+import ReportGrid from "@/components/common-ui/ReportGrid";
 
 const ORANGE = "#E8541C";
 
@@ -22,9 +22,7 @@ export default function NearbySection({ reports }: Props) {
                     <ArrowRight size={13} color={ORANGE} strokeWidth={2} />
                 </TouchableOpacity>
             </View>
-            {reports.map((r) => (
-                <ReportCard key={r.id} report={r} variant="nearby" distance="< 1 km" />
-            ))}
+            <ReportGrid reports={reports} variant="nearby" />
         </View>
     );
 }

@@ -41,9 +41,10 @@ interface Props {
     report: Report;
     variant?: "status" | "nearby";
     distance?: string;
+    compact?: boolean;
 }
 
-export default function ReportCard({ report, variant = "status", distance }: Props) {
+export default function ReportCard({ report, variant = "status", distance, compact = false }: Props) {
     const router = useRouter();
     const user = useAuthStore((s) => s.user);
     const s = STATUS_CFG[report.status] ?? { label: report.status, color: "#374151", bg: "#F3F4F6", dot: "#9CA3AF" };
@@ -76,20 +77,19 @@ export default function ReportCard({ report, variant = "status", distance }: Pro
 
     return (
         <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, compact && styles.cardCompact]}
             onPress={() => router.push(`/laporan/${report.id}` as any)}
             activeOpacity={0.85}
         >
             {/* Thumbnail */}
-            <View style={styles.thumb}>
+            <View style={[styles.thumb, compact && styles.thumbCompact]}>
                 {report.image_url ? (
                     <Image source={{ uri: report.image_url }} style={styles.thumbImg} resizeMode="cover" />
                 ) : (
                     <View style={styles.thumbPlaceholder}>
-                        <ImageIcon size={24} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
+                        <ImageIcon size={compact ? 18 : 24} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
                     </View>
                 )}
-                {/* Badge */}
                 {variant === "nearby" && distance ? (
                     <View style={styles.badgeWrap}>
                         <MapPin size={9} color="#E8541C" strokeWidth={2.5} />
@@ -103,25 +103,26 @@ export default function ReportCard({ report, variant = "status", distance }: Pro
                 )}
             </View>
 
-
             {/* Content */}
-            <View style={styles.content}>
+            <View style={[styles.content, compact && styles.contentCompact]}>
                 {/* User + date */}
                 <View style={styles.row}>
                     <View style={[styles.avatar, { backgroundColor: avatarFrom }]}>
                         <Text style={styles.avatarText}>{inisial}</Text>
                     </View>
-                    <Text style={styles.userName} numberOfLines={1}>{report.user_name ?? "Anonim"}</Text>
-                    <Text style={styles.date}>{fmtDate(report.created_at)}</Text>
+                    {!compact && <Text style={styles.userName} numberOfLines={1}>{report.user_name ?? "Anonim"}</Text>}
+                    <Text style={[styles.date, compact && { fontSize: 9 }]}>{fmtDate(report.created_at)}</Text>
                 </View>
 
                 {/* Title */}
-                <Text style={styles.title} numberOfLines={2}>{report.title}</Text>
+                <Text style={[styles.title, compact && styles.titleCompact]} numberOfLines={2}>
+                    {report.title}
+                </Text>
 
                 {/* Location */}
                 <View style={styles.row}>
-                    <MapPin size={10} color="#a8856b" strokeWidth={2} />
-                    <Text style={styles.location} numberOfLines={1}>
+                    <MapPin size={9} color="#a8856b" strokeWidth={2} />
+                    <Text style={[styles.location, compact && { fontSize: 10 }]} numberOfLines={1}>
                         {report.location ?? "Lokasi tidak diketahui"}
                     </Text>
                 </View>
@@ -130,7 +131,7 @@ export default function ReportCard({ report, variant = "status", distance }: Pro
                 <View style={styles.footer}>
                     <TouchableOpacity style={styles.upvoteBtn} onPress={handleUpvote} disabled={upvoting}>
                         <ArrowBigUp
-                            size={15}
+                            size={compact ? 12 : 15}
                             color={upvoted ? "#E8541C" : "#6b5546"}
                             fill={upvoted ? "#E8541C" : "none"}
                             strokeWidth={upvoted ? 2.5 : 1.8}
@@ -138,14 +139,9 @@ export default function ReportCard({ report, variant = "status", distance }: Pro
                         <Text style={[styles.footerText, upvoted && { color: "#E8541C" }]}>{fmt(upvoteCount)}</Text>
                     </TouchableOpacity>
                     <View style={styles.row}>
-                        <MessageCircle size={11} color="#a8856b" strokeWidth={1.8} />
+                        <MessageCircle size={compact ? 10 : 11} color="#a8856b" strokeWidth={1.8} />
                         <Text style={styles.footerText}>{fmt(report.comment_count ?? 0)}</Text>
                     </View>
-                    {report.category_name && (
-                        <View style={styles.catBadge}>
-                            <Text style={styles.catText}>{report.category_name}</Text>
-                        </View>
-                    )}
                 </View>
             </View>
         </TouchableOpacity>
@@ -190,4 +186,10 @@ const styles = StyleSheet.create({
     footerText: { fontSize: 11, color: "#6b5546" },
     catBadge: { marginLeft: "auto", backgroundColor: "#FFF5EE", borderRadius: 99, paddingHorizontal: 7, paddingVertical: 2 },
     catText: { fontSize: 9, fontWeight: "700", color: "#E8541C" },
+
+    cardCompact: { marginBottom: 0 },
+    thumbCompact: { height: 110 },
+    contentCompact: { padding: 8, gap: 4 },
+    titleCompact: { fontSize: 11, lineHeight: 15 },
 });
+

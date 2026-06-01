@@ -1,11 +1,33 @@
-import { Tabs } from "expo-router";
+import { useEffect, useState } from "react";
+import { Tabs, useRouter } from "expo-router";
 import { Home, Compass, Plus, Bell, User } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
+import { useAuthStore } from "@/store/auth.store";
 
 const ORANGE = "#E8541C";
 const GRAY = "#a8856b";
 
 export default function TabsLayout() {
+    const { token, loadFromStorage } = useAuthStore();
+    const router = useRouter();
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        loadFromStorage().finally(() => setReady(true));
+    }, []);
+
+    useEffect(() => {
+        if (ready && !token) {
+            router.replace("/(auth)/login" as any);
+        }
+    }, [ready, token]);
+
+    if (!ready) return (
+        <View style={{ flex: 1, backgroundColor: "#FFFCFA", alignItems: "center", justifyContent: "center" }}>
+            <ActivityIndicator color={ORANGE} />
+        </View>
+    );
+
     return (
         <Tabs
             screenOptions={{
@@ -33,7 +55,7 @@ export default function TabsLayout() {
             <Tabs.Screen name="buat-laporan"
                 options={{
                     title: "",
-                    tabBarIcon: ({ color }) => (
+                    tabBarIcon: () => (
                         <View style={styles.fabWrapper}>
                             <View style={styles.fab}>
                                 <Plus size={22} color="#fff" strokeWidth={2.5} />

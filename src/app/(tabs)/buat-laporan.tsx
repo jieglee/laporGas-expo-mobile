@@ -15,14 +15,14 @@ import { type FormState, isFormValid } from "@/components/user/BuatLaporan/types
 
 const ORANGE = "#E8541C";
 const EMPTY: FormState = {
-  title: "",
-  description: "",
-  category_id: "",
-  location: "",
-  latitude: "",
-  longitude: "",
-  priority: "",
-  images: [],
+    title: "",
+    description: "",
+    category_id: "",
+    location: "",
+    latitude: "",
+    longitude: "",
+    priority: "",
+    images: [],
 };
 
 export default function BuatLaporanPage() {
@@ -49,6 +49,8 @@ export default function BuatLaporanPage() {
                 category_id: Number(form.category_id),
                 priority: form.priority as any,
                 location: form.location || undefined,
+                latitude: form.latitude ? parseFloat(form.latitude) : undefined,
+                longitude: form.longitude ? parseFloat(form.longitude) : undefined,
                 images: form.images,
             });
             setSubmitted(true);
@@ -89,7 +91,7 @@ export default function BuatLaporanPage() {
                     <CategoryField value={form.category_id} onChange={(v) => set("category_id", v)} />
                     <PriorityField value={form.priority} onChange={(v) => set("priority", v)} />
                     <View style={styles.divider} />
-                    <LocationField location={form.location} latitude={form.latitude} longitude={form.longitude} onChange={(lat: string, lng: string, address: string) => {set("latitude", lat); set("longitude", lng); set("location", address);}}/>
+                    <LocationField location={form.location} latitude={form.latitude} longitude={form.longitude} onChange={(lat: string, lng: string, address: string) => { set("latitude", lat); set("longitude", lng); set("location", address); }} />
                     <View style={styles.divider} />
                     <ImageUpload images={form.images} onChange={(imgs) => set("images", imgs)} />
                     <SubmitButton form={form} submitting={submitting} onSubmit={handleSubmit} />

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, ActivityIndicator, FlatList } from "react-native";
+import { StyleSheet, ActivityIndicator, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getReports, type Report } from "@/lib/report";
-import ReportCard from "@/components/common-ui/ReportCard";
+import ReportGrid from "@/components/common-ui/ReportGrid";
 import ExploreHeader from "@/components/user/Explore/ExploreHeader";
 import ExploreEmpty from "@/components/user/Explore/ExploreEmpty";
 import { type Kategori, mapKategori } from "@/components/user/Explore/types";
@@ -54,13 +54,12 @@ export default function ExplorePage() {
             ) : filtered.length === 0 ? (
                 <ExploreEmpty />
             ) : (
-                <FlatList
-                    data={filtered}
-                    keyExtractor={(item) => String(item.id)}
+                <ScrollView
                     contentContainerStyle={styles.list}
                     showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => <ReportCard report={item} variant="status" />}
-                />
+                >
+                    <ReportGrid reports={filtered} variant="status" />
+                </ScrollView>
             )}
         </SafeAreaView>
     );

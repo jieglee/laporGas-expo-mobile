@@ -9,14 +9,15 @@ import { getReports, type Report } from "@/lib/report";
 import { FileText } from "lucide-react-native";
 import ProfileHeader from "@/components/user/Profile/ProfileHeader";
 import EditProfileModal from "@/components/user/Profile/EditProfileModal";
-import ReportCard from "@/components/common-ui/ReportCard";
+import ReportGrid from "@/components/common-ui/ReportGrid";
 import { useRouter } from "expo-router";
 
 export default function ProfilPage() {
-    const { user, logout, token } = useAuthStore();
+    const { user, logout, token, loadFromStorage } = useAuthStore();
     const [editOpen, setEditOpen] = useState(false);
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true);
     const router = useRouter();
 
     const nama = user?.name ?? "Pengguna";
@@ -25,10 +26,14 @@ export default function ProfilPage() {
     const joinedAt = new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" });
 
     useEffect(() => {
-        if (!token) {
+        loadFromStorage().finally(() => setAuthLoading(false));
+    }, []);
+
+    useEffect(() => {
+        if (!authLoading && !token) {
             router.replace("/(auth)/login" as any);
         }
-    }, [token]);
+    }, [token, authLoading]);
 
     useEffect(() => {
         async function fetchReports() {
@@ -59,6 +64,12 @@ export default function ProfilPage() {
             },
         ]);
     };
+
+    if (authLoading) return (
+        <View style={{ flex: 1, backgroundColor: "#FFFCFA", alignItems: "center", justifyContent: "center" }}>
+            <ActivityIndicator color="#E8541C" />
+        </View>
+    );
 
     return (
         <SafeAreaView style={styles.root}>
@@ -99,9 +110,7 @@ export default function ProfilPage() {
                             <Text style={styles.emptySub}>Kamu belum pernah membuat laporan</Text>
                         </View>
                     ) : (
-                        reports.map((r) => (
-                            <ReportCard key={r.id} report={r} />
-                        ))
+                        <ReportGrid reports={reports} />
                     )}
                 </View>
             </ScrollView>

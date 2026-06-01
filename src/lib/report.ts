@@ -1,4 +1,5 @@
 import api from "./api";
+import { Platform } from "react-native";
 
 export type ReportStatus = "pending" | "approved" | "on_progress" | "completed" | "rejected";
 export type Priority = "low" | "medium" | "high" | "urgent";
@@ -52,7 +53,7 @@ export async function createReport(payload: {
     location?: string;
     latitude?: number;
     longitude?: number;
-    images?: string[]; // base64 atau uri
+    images?: string[];
 }): Promise<Report> {
     const formData = new FormData();
     formData.append("title", payload.title);
@@ -60,15 +61,31 @@ export async function createReport(payload: {
     formData.append("category_id", String(payload.category_id));
     formData.append("priority", payload.priority);
     if (payload.location) formData.append("location", payload.location);
-    if (payload.latitude) formData.append("latitude", String(payload.latitude));
-    if (payload.longitude) formData.append("longitude", String(payload.longitude));
+    if (payload.latitude && payload.latitude !== 0) {
+        formData.append("latitude", String(payload.latitude));
+    }
+    if (payload.longitude && payload.longitude !== 0) {
+        formData.append("longitude", String(payload.longitude));
+    }
 
     if (payload.images && payload.images.length > 0) {
-        payload.images.forEach((uri, i) => {
-            const filename = uri.split("/").pop() ?? `photo_${i}.jpg`;
-            const type = filename.endsWith(".png") ? "image/png" : "image/jpeg";
-            formData.append("images", { uri, name: filename, type } as any);
-        });
+        for (let i = 0; i < payload.images.length; i++) {
+            const uri = payload.images[i];
+            if (Platform.OS === "web") {
+                try {
+                    const response = await fetch(uri);
+                    const blob = await response.blob();
+                    const filename = `photo_${i}.${blob.type.includes("png") ? "png" : "jpg"}`;
+                    formData.append("images", blob, filename);
+                } catch (err) {
+                    console.error("Gagal convert foto:", err);
+                }
+            } else {
+                const filename = uri.split("/").pop() ?? `photo_${i}.jpg`;
+                const type = filename.endsWith(".png") ? "image/png" : "image/jpeg";
+                formData.append("images", { uri, name: filename, type } as any);
+            }
+        }
     }
 
     const res = await api.post("/reports", formData, {
