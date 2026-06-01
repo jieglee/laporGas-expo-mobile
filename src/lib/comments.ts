@@ -11,7 +11,7 @@ export interface Comment {
 }
 
 export async function getComments(reportId: number): Promise<Comment[]> {
-    const res = await api.get(`/reports/${reportId}/comments`);
+    const res = await api.get(`/comments/${reportId}`);
     return res.data;
 }
 
