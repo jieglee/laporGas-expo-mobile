@@ -19,5 +19,13 @@ api.interceptors.response.use(
     (err) => Promise.reject(err)
 );
 
+api.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().token;
+    console.log("Token saat request:", token ? "ADA" : "TIDAK ADA");
+    console.log("URL:", config.url);
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
+
 
 export default api;

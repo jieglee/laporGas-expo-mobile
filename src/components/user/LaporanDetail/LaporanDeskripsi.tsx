@@ -18,10 +18,10 @@ export default function LaporanDeskripsi({ report }: { report: Report }) {
 }
 
 const styles = StyleSheet.create({
-    card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, borderWidth: 0.5, borderColor: "#f0e6dc" },
-    label: { fontSize: 9, fontWeight: "800", color: "#E8541C", letterSpacing: 1.5, marginBottom: 10 },
-    desc: { fontSize: 14, color: "#374151", lineHeight: 22 },
-    rejectBox: { marginTop: 14, backgroundColor: "#FEF2F2", borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: "#FECACA" },
+    card: { backgroundColor: "#fff", borderRadius: 20, padding: 18, borderWidth: 0.5, borderColor: "#f0e6dc", gap: 10 },
+    label: { fontSize: 9, fontWeight: "800", color: "#E8541C", letterSpacing: 2, marginBottom: 2 },
+    desc: { fontSize: 14, color: "#374151", lineHeight: 24 },
+    rejectBox: { marginTop: 4, backgroundColor: "#FEF2F2", borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: "#FECACA" },
     rejectLabel: { fontSize: 9, fontWeight: "800", color: "#EF4444", letterSpacing: 1, marginBottom: 6 },
     rejectText: { fontSize: 13, color: "#991B1B", lineHeight: 20 },
 });

@@ -17,7 +17,9 @@ export default function LaporanLokasi({ report }: { report: Report }) {
     return (
         <View style={styles.card}>
             <View style={styles.headerRow}>
-                <MapPin size={14} color="#E8541C" strokeWidth={2} />
+                <View style={styles.headerIcon}>
+                    <MapPin size={13} color="#E8541C" strokeWidth={2} />
+                </View>
                 <Text style={styles.label}>Lokasi Kejadian</Text>
             </View>
 
@@ -28,18 +30,16 @@ export default function LaporanLokasi({ report }: { report: Report }) {
                         src={mapUrl}
                         width="100%"
                         height="200"
-                        style={{ border: "none", display: "block" }}
+                        style={{ border: "none", display: "block", width: "100%", height: "100%" }}
                         loading="lazy"
                     />
                 ) : (
-                    // Lazy import biar ga crash di web
-                    <NativeMap url={mapUrl} />
+                    <Text style={styles.nativeText}>Buka di perangkat untuk melihat peta</Text>
                 )}
             </View>
 
             {report.location && (
                 <View style={styles.addressRow}>
-                    <MapPin size={11} color="#E8541C" strokeWidth={2} />
                     <Text style={styles.address}>{report.location}</Text>
                 </View>
             )}
@@ -47,26 +47,16 @@ export default function LaporanLokasi({ report }: { report: Report }) {
     );
 }
 
-// Komponen terpisah untuk native agar WebView hanya di-import di native
-function NativeMap({ url }: { url: string }) {
-    const WebView = require("react-native-webview").WebView;
-    return (
-        <WebView
-            source={{ uri: url }}
-            style={{ height: 200 }}
-            scrollEnabled={false}
-        />
-    );
-}
-
 const styles = StyleSheet.create({
-    card: { backgroundColor: "#fff", borderRadius: 16, overflow: "hidden", borderWidth: 0.5, borderColor: "#f0e6dc" },
-    headerRow: { flexDirection: "row", alignItems: "center", gap: 6, padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#f0e6dc" },
-    label: { fontSize: 13, fontWeight: "700", color: "#3d2817" },
+    card: { backgroundColor: "#fff", borderRadius: 20, overflow: "hidden", borderWidth: 0.5, borderColor: "#f0e6dc" },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 14, borderBottomWidth: 0.5, borderBottomColor: "#f5ede3" },
+    headerIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center" },
+    label: { fontSize: 13, fontWeight: "700", color: "#1a0e08" },
     mapWrap: { height: 200 },
-    addressRow: { flexDirection: "row", alignItems: "flex-start", gap: 6, padding: 12, borderTopWidth: 0.5, borderTopColor: "#f0e6dc" },
-    address: { fontSize: 12, color: "#6b5546", flex: 1, lineHeight: 18 },
-    empty: { backgroundColor: "#fff", borderRadius: 16, padding: 24, alignItems: "center", gap: 8, borderWidth: 0.5, borderColor: "#f0e6dc" },
-    emptyIcon: { width: 40, height: 40, borderRadius: 99, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center" },
+    nativeText: { padding: 16, color: "#a8856b", fontSize: 12, textAlign: "center", marginTop: 60 },
+    addressRow: { padding: 14, borderTopWidth: 0.5, borderTopColor: "#f5ede3" },
+    address: { fontSize: 12, color: "#6b5546", lineHeight: 18 },
+    empty: { backgroundColor: "#fff", borderRadius: 20, padding: 28, alignItems: "center", gap: 8, borderWidth: 0.5, borderColor: "#f0e6dc" },
+    emptyIcon: { width: 44, height: 44, borderRadius: 99, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center" },
     emptyText: { fontSize: 13, color: "#a8856b" },
 });

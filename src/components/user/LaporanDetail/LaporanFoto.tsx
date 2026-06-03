@@ -16,12 +16,20 @@ export default function LaporanFoto({ report }: { report: Report }) {
     return (
         <View style={styles.card}>
             {/* Main image */}
-            <View style={[styles.mainImg, { height: IMG_HEIGHT }]}>
+            <View style={[styles.mainWrap, { height: IMG_HEIGHT }]}>
                 <Image
                     source={{ uri: imgs[activeImg] }}
-                    style={styles.img}
+                    style={styles.mainImg}
                     resizeMode="cover"
                 />
+                {/* Dot indicators */}
+                {imgs.length > 1 && (
+                    <View style={styles.dots}>
+                        {imgs.map((_, i) => (
+                            <View key={i} style={[styles.dot, i === activeImg && styles.dotActive]} />
+                        ))}
+                    </View>
+                )}
             </View>
 
             {/* Thumbnails */}
@@ -32,6 +40,7 @@ export default function LaporanFoto({ report }: { report: Report }) {
                             key={i}
                             onPress={() => setActiveImg(i)}
                             style={[styles.thumb, i === activeImg && styles.thumbActive]}
+                            activeOpacity={0.8}
                         >
                             <Image source={{ uri: url }} style={styles.thumbImg} resizeMode="cover" />
                         </TouchableOpacity>
@@ -43,11 +52,14 @@ export default function LaporanFoto({ report }: { report: Report }) {
 }
 
 const styles = StyleSheet.create({
-    card: { backgroundColor: "#fff", borderRadius: 16, overflow: "hidden", borderWidth: 0.5, borderColor: "#f0e6dc" },
-    mainImg: { width: "100%", backgroundColor: "#f5f0eb" },
-    img: { width: "100%", height: "100%" },
-    thumbRow: { flexDirection: "row", gap: 8, padding: 10, flexWrap: "wrap" },
-    thumb: { width: 56, height: 56, borderRadius: 8, overflow: "hidden", borderWidth: 2, borderColor: "transparent", opacity: 0.6 },
+    card: { backgroundColor: "#fff", borderRadius: 20, overflow: "hidden", borderWidth: 0.5, borderColor: "#f0e6dc" },
+    mainWrap: { width: "100%", backgroundColor: "#f5ede3", position: "relative" },
+    mainImg: { width: "100%", height: "100%" },
+    dots: { position: "absolute", bottom: 10, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 5 },
+    dot: { width: 6, height: 6, borderRadius: 99, backgroundColor: "rgba(255,255,255,0.5)" },
+    dotActive: { backgroundColor: "#fff", width: 18 },
+    thumbRow: { flexDirection: "row", gap: 8, padding: 12 },
+    thumb: { width: 60, height: 60, borderRadius: 10, overflow: "hidden", borderWidth: 2, borderColor: "transparent", opacity: 0.55 },
     thumbActive: { borderColor: "#E8541C", opacity: 1 },
     thumbImg: { width: "100%", height: "100%" },
 });

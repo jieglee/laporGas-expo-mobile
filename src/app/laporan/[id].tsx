@@ -25,11 +25,8 @@ export default function LaporanDetailPage() {
     const [error, setError] = useState<string | null>(null);
 
     const goBack = () => {
-        if (router.canGoBack()) {
-            router.back();
-        } else {
-            router.replace("/(tabs)" as any);
-        }
+        if (router.canGoBack()) router.back();
+        else router.replace("/(tabs)" as any);
     };
 
     useEffect(() => {
@@ -48,28 +45,29 @@ export default function LaporanDetailPage() {
         fetchData();
     }, [id]);
 
-    const handleCommentAdded = (comment: Comment) => {
-        setComments((prev) => [...prev, comment]);
-    };
-
-    const handleCommentDeleted = (commentId: number) => {
-        setComments((prev) => prev.filter((c) => c.id !== commentId));
-    };
+    const handleCommentAdded = (comment: Comment) => setComments((prev) => [...prev, comment]);
+    const handleCommentDeleted = (commentId: number) => setComments((prev) => prev.filter((c) => c.id !== commentId));
 
     if (loading) return (
-        <View style={styles.center}>
-            <ActivityIndicator color="#E8541C" />
-            <Text style={styles.loadingText}>Memuat laporan...</Text>
-        </View>
+        <SafeAreaView style={styles.center}>
+            <View style={styles.loadingCard}>
+                <ActivityIndicator color="#E8541C" size="large" />
+                <Text style={styles.loadingText}>Memuat laporan...</Text>
+            </View>
+        </SafeAreaView>
     );
 
     if (error || !report) return (
-        <View style={styles.center}>
-            <Text style={styles.errorText}>{error ?? "Terjadi kesalahan"}</Text>
-            <TouchableOpacity onPress={goBack}>
-                <Text style={styles.backLink}>Kembali</Text>
-            </TouchableOpacity>
-        </View>
+        <SafeAreaView style={styles.center}>
+            <View style={styles.errorCard}>
+                <Text style={styles.errorEmoji}>😔</Text>
+                <Text style={styles.errorTitle}>Laporan tidak ditemukan</Text>
+                <Text style={styles.errorSub}>{error ?? "Terjadi kesalahan"}</Text>
+                <TouchableOpacity onPress={goBack} style={styles.errorBtn}>
+                    <Text style={styles.errorBtnText}>Kembali</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 
     const officialComments = comments.filter((c) => c.type === "official");
@@ -77,32 +75,48 @@ export default function LaporanDetailPage() {
 
     return (
         <SafeAreaView style={styles.root}>
+            {/* Top bar */}
             <View style={styles.topBar}>
-                <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-                    <ArrowLeft size={18} color="#3d2817" strokeWidth={2} />
+                <TouchableOpacity onPress={goBack} style={styles.backBtn} activeOpacity={0.7}>
+                    <ArrowLeft size={17} color="#3d2817" strokeWidth={2.2} />
                 </TouchableOpacity>
                 <Text style={styles.topBarTitle} numberOfLines={1}>Detail Laporan</Text>
                 <View style={{ width: 36 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-                <LaporanHeader report={report} />
-                <LaporanFoto report={report} />
-                <LaporanDeskripsi report={report} />
-                <LaporanLokasi report={report} />
-                <LaporanStats report={report} comments={comments} />
-                {officialComments.length > 0 && (
-                    <LaporanTindakLanjut
-                        comments={officialComments}
-                        onDelete={handleCommentDeleted}
+            <ScrollView
+                contentContainerStyle={styles.scroll}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Foto di paling atas tanpa padding */}
+                <View style={styles.fotoWrap}>
+                    <LaporanFoto report={report} />
+                </View>
+
+                {/* Konten dengan padding */}
+                <View style={styles.content}>
+                    <LaporanHeader report={report} />
+                    <LaporanDeskripsi report={report} />
+
+                    {/* Stats row */}
+                    <LaporanStats report={report} comments={comments} />
+
+                    <LaporanLokasi report={report} />
+
+                    {officialComments.length > 0 && (
+                        <LaporanTindakLanjut
+                            comments={officialComments}
+                            onDelete={handleCommentDeleted}
+                        />
+                    )}
+
+                    <LaporanKomentar
+                        report={report}
+                        publicComments={publicComments}
+                        onCommentAdded={handleCommentAdded}
+                        onCommentDeleted={handleCommentDeleted}
                     />
-                )}
-                <LaporanKomentar
-                    report={report}
-                    publicComments={publicComments}
-                    onCommentAdded={handleCommentAdded}
-                    onCommentDeleted={handleCommentDeleted}
-                />
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -110,16 +124,39 @@ export default function LaporanDetailPage() {
 
 const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: "#FFFCFA" },
+
     topBar: {
         flexDirection: "row", alignItems: "center", justifyContent: "space-between",
         paddingHorizontal: 16, paddingVertical: 12,
-        backgroundColor: "#fff", borderBottomWidth: 0.5, borderBottomColor: "#f0e6dc",
+        backgroundColor: "#fff",
+        borderBottomWidth: 0.5, borderBottomColor: "#f0e6dc",
     },
-    backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#fafaf8", alignItems: "center", justifyContent: "center", borderWidth: 0.5, borderColor: "#f0e6dc" },
-    topBarTitle: { fontSize: 15, fontWeight: "700", color: "#1a0e08", flex: 1, textAlign: "center", marginHorizontal: 8 },
-    scroll: { padding: 16, gap: 12, paddingBottom: 40 },
-    center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: "#FFFCFA" },
+    backBtn: {
+        width: 36, height: 36, borderRadius: 10,
+        backgroundColor: "#fafaf8", alignItems: "center", justifyContent: "center",
+        borderWidth: 0.5, borderColor: "#f0e6dc",
+    },
+    topBarTitle: {
+        fontSize: 15, fontWeight: "700", color: "#1a0e08",
+        flex: 1, textAlign: "center", marginHorizontal: 8,
+    },
+
+    scroll: { paddingBottom: 48 },
+
+    // Foto tanpa padding, edge-to-edge
+    fotoWrap: { marginBottom: 0 },
+
+    // Semua konten di bawah foto
+    content: { padding: 14, gap: 12 },
+
+    // Loading & error
+    center: { flex: 1, backgroundColor: "#FFFCFA", alignItems: "center", justifyContent: "center", padding: 24 },
+    loadingCard: { alignItems: "center", gap: 14 },
     loadingText: { fontSize: 13, color: "#a8856b" },
-    errorText: { fontSize: 14, color: "#C0392B" },
-    backLink: { fontSize: 13, color: "#E8541C", textDecorationLine: "underline" },
+    errorCard: { alignItems: "center", gap: 10 },
+    errorEmoji: { fontSize: 40 },
+    errorTitle: { fontSize: 16, fontWeight: "700", color: "#1a0e08" },
+    errorSub: { fontSize: 13, color: "#a8856b", textAlign: "center" },
+    errorBtn: { marginTop: 8, backgroundColor: "#FFF5EE", borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: "#f0e6dc" },
+    errorBtnText: { fontSize: 13, fontWeight: "600", color: "#E8541C" },
 });

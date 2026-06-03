@@ -31,34 +31,33 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ← hapus if (!loaded) return null
-  // render tetap jalan, splash nutup semuanya
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <PaperProvider>
-            <StatusBar style="auto" />
-            {loaded && ( // ← stack hanya render kalau font siap
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-              </Stack>
-            )}
-            {showSplash && (
-              <View style={{
-                position: "absolute",
-                top: 0, left: 0, right: 0, bottom: 0,
-                zIndex: 9999,
-              }}>
-                <CustomSplash isVisible={splashVisible} />
-              </View>
-            )}
-          </PaperProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFCFA" }}>
+        <SafeAreaProvider>
+            <QueryClientProvider client={queryClient}>
+                <PaperProvider>
+                    <StatusBar style="auto" />
+                    {loaded && (
+                        <Stack screenOptions={{ headerShown: false }}>
+                            <Stack.Screen name="index" />
+                            <Stack.Screen name="(auth)" />
+                            <Stack.Screen name="(tabs)" />
+                            <Stack.Screen name="laporan/[id]" />
+                            <Stack.Screen name="onboarding" />
+                        </Stack>
+                    )}
+                    {showSplash && (
+                        <View style={{
+                            position: "absolute",
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            zIndex: 9999,
+                        }}>
+                            <CustomSplash isVisible={splashVisible} />
+                        </View>
+                    )}
+                </PaperProvider>
+            </QueryClientProvider>
+        </SafeAreaProvider>
     </GestureHandlerRootView>
-  );
+);
 }

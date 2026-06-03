@@ -1,20 +1,24 @@
-
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from "react-native";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { createComment, deleteComment, type Comment } from "@/lib/comments";
 import type { Report } from "@/lib/report";
-import { Trash2 } from "lucide-react-native";
+import { Send, Trash2 } from "lucide-react-native";
 
 function fmtDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diff < 3600) return `${Math.floor(diff / 60)} mnt lalu`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+    return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, size = 32 }: { name: string; size?: number }) {
     const txt = (name ?? "?").split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
     return (
-        <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{txt}</Text>
+        <View style={[styles.avatar, { width: size, height: size, borderRadius: size }]}>
+            <Text style={[styles.avatarText, { fontSize: size * 0.3 }]}>{txt}</Text>
         </View>
     );
 }
@@ -59,36 +63,45 @@ export default function LaporanKomentar({ report, publicComments, onCommentAdded
 
     return (
         <View style={styles.card}>
-            <Text style={styles.label}>DISKUSI</Text>
-            <Text style={styles.title}>
-                Komentar Publik <Text style={styles.count}>({publicComments.length})</Text>
-            </Text>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.label}>DISKUSI</Text>
+                <Text style={styles.title}>
+                    Komentar Publik{" "}
+                    <Text style={styles.count}>({publicComments.length})</Text>
+                </Text>
+            </View>
 
             {/* Input */}
             {user ? (
-                <View style={styles.inputRow}>
-                    <Avatar name={user.name ?? "U"} />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Tulis komentar..."
-                        placeholderTextColor="#c9a892"
-                        value={text}
-                        onChangeText={setText}
-                        multiline
-                    />
-                    <TouchableOpacity
-                        style={[styles.sendBtn, (!text.trim() || submitting) && styles.sendDisabled]}
-                        onPress={handleSubmit}
-                        disabled={!text.trim() || submitting}
-                    >
-                        <Text style={styles.sendText}>{submitting ? "..." : "Kirim"}</Text>
-                    </TouchableOpacity>
+                <View style={styles.inputWrap}>
+                    <Avatar name={user.name ?? "U"} size={36} />
+                    <View style={styles.inputInner}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Tulis komentar..."
+                            placeholderTextColor="#c9a892"
+                            value={text}
+                            onChangeText={setText}
+                            multiline
+                        />
+                        <TouchableOpacity
+                            style={[styles.sendBtn, (!text.trim() || submitting) && styles.sendDisabled]}
+                            onPress={handleSubmit}
+                            disabled={!text.trim() || submitting}
+                        >
+                            <Send size={14} color="#fff" strokeWidth={2} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             ) : (
                 <View style={styles.loginPrompt}>
                     <Text style={styles.loginText}>Login untuk berkomentar</Text>
                 </View>
             )}
+
+            {/* Divider */}
+            <View style={styles.divider} />
 
             {/* List */}
             {publicComments.length === 0 ? (
@@ -99,9 +112,9 @@ export default function LaporanKomentar({ report, publicComments, onCommentAdded
                 <View style={styles.list}>
                     {publicComments.map((c, i) => (
                         <View key={c.id} style={[styles.commentItem, i > 0 && styles.commentBorder]}>
-                            <Avatar name={c.name ?? "U"} />
-                            <View style={styles.commentContent}>
-                                <View style={styles.commentRow}>
+                            <Avatar name={c.name ?? "U"} size={34} />
+                            <View style={styles.commentBody}>
+                                <View style={styles.commentTop}>
                                     <Text style={styles.commentName}>{c.name ?? "Anonim"}</Text>
                                     <Text style={styles.commentDate}>{fmtDate(c.created_at)}</Text>
                                     {user?.id === String(c.user_id) && (
@@ -121,28 +134,36 @@ export default function LaporanKomentar({ report, publicComments, onCommentAdded
 }
 
 const styles = StyleSheet.create({
-    card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, borderWidth: 0.5, borderColor: "#f0e6dc" },
-    label: { fontSize: 9, fontWeight: "800", color: "#E8541C", letterSpacing: 1.5, marginBottom: 4 },
-    title: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 14 },
-    count: { color: "#9CA3AF", fontWeight: "400" },
-    inputRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, marginBottom: 16 },
-    avatar: { width: 32, height: 32, borderRadius: 99, backgroundColor: "#E8541C", alignItems: "center", justifyContent: "center", marginTop: 2 },
-    avatarText: { fontSize: 10, fontWeight: "700", color: "#fff" },
-    input: { flex: 1, borderWidth: 1, borderColor: "#f0e6dc", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, color: "#1a0e08", backgroundColor: "#fafaf8", maxHeight: 80 },
-    sendBtn: { backgroundColor: "#E8541C", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, alignSelf: "flex-end" },
-    sendDisabled: { opacity: 0.4 },
-    sendText: { color: "#fff", fontSize: 12, fontWeight: "700" },
-    loginPrompt: { backgroundColor: "#fafaf8", borderRadius: 12, padding: 14, alignItems: "center", marginBottom: 16 },
+    card: { backgroundColor: "#fff", borderRadius: 20, padding: 18, borderWidth: 0.5, borderColor: "#f0e6dc", gap: 14 },
+    header: { gap: 2 },
+    label: { fontSize: 9, fontWeight: "800", color: "#E8541C", letterSpacing: 2 },
+    title: { fontSize: 16, fontWeight: "700", color: "#1a0e08" },
+    count: { color: "#a8856b", fontWeight: "400" },
+
+    inputWrap: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+    inputInner: { flex: 1, flexDirection: "row", alignItems: "flex-end", gap: 8, backgroundColor: "#fafaf8", borderRadius: 14, borderWidth: 1, borderColor: "#f0e6dc", paddingHorizontal: 12, paddingVertical: 8 },
+    input: { flex: 1, fontSize: 13, color: "#1a0e08", maxHeight: 80, lineHeight: 20 },
+    sendBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: "#E8541C", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+    sendDisabled: { opacity: 0.35 },
+
+    loginPrompt: { backgroundColor: "#fafaf8", borderRadius: 12, padding: 14, alignItems: "center" },
     loginText: { fontSize: 13, color: "#a8856b" },
-    empty: { paddingVertical: 24, alignItems: "center" },
-    emptyText: { fontSize: 13, color: "#D1D5DB" },
+
+    divider: { height: 0.5, backgroundColor: "#f5ede3" },
+
+    empty: { paddingVertical: 20, alignItems: "center" },
+    emptyText: { fontSize: 13, color: "#c9a892" },
+
     list: { gap: 0 },
     commentItem: { flexDirection: "row", gap: 10, paddingVertical: 12 },
-    commentBorder: { borderTopWidth: 0.5, borderTopColor: "#f5f5f5" },
-    commentContent: { flex: 1, gap: 4 },
-    commentRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-    commentName: { fontSize: 12, fontWeight: "700", color: "#111827" },
-    commentDate: { fontSize: 10, color: "#D1D5DB" },
-    deleteBtn: { marginLeft: "auto" },
-    commentText: { fontSize: 13, color: "#374151", lineHeight: 19 },
+    commentBorder: { borderTopWidth: 0.5, borderTopColor: "#f5ede3" },
+    commentBody: { flex: 1, gap: 5 },
+    commentTop: { flexDirection: "row", alignItems: "center", gap: 6 },
+    commentName: { fontSize: 12, fontWeight: "700", color: "#1a0e08" },
+    commentDate: { fontSize: 10, color: "#c9a892", flex: 1 },
+    deleteBtn: { padding: 2 },
+    commentText: { fontSize: 13, color: "#374151", lineHeight: 20 },
+
+    avatar: { backgroundColor: "#E8541C", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+    avatarText: { fontWeight: "700", color: "#fff" },
 });

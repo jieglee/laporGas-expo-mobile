@@ -6,30 +6,30 @@ import type { Comment } from "@/lib/comments";
 export default function LaporanStats({ report, comments }: { report: Report; comments: Comment[] }) {
     return (
         <View style={styles.card}>
-            <Text style={styles.label}>STATISTIK</Text>
-            <View style={styles.row}>
-                <View style={styles.item}>
-                    <ArrowBigUp size={18} color="#E8541C" strokeWidth={1.8} />
-                    <Text style={styles.val}>{report.upvote_count ?? 0}</Text>
-                    <Text style={styles.key}>Dukungan</Text>
+            <View style={styles.item}>
+                <View style={styles.iconWrap}>
+                    <ArrowBigUp size={20} color="#E8541C" strokeWidth={1.8} />
                 </View>
-                <View style={styles.divider} />
-                <View style={styles.item}>
-                    <MessageCircle size={18} color="#E8541C" strokeWidth={1.8} />
-                    <Text style={styles.val}>{comments.length}</Text>
-                    <Text style={styles.key}>Komentar</Text>
+                <Text style={styles.val}>{report.upvote_count ?? 0}</Text>
+                <Text style={styles.key}>Dukungan</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.item}>
+                <View style={styles.iconWrap}>
+                    <MessageCircle size={20} color="#E8541C" strokeWidth={1.8} />
                 </View>
+                <Text style={styles.val}>{comments.length}</Text>
+                <Text style={styles.key}>Komentar</Text>
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, borderWidth: 0.5, borderColor: "#f0e6dc" },
-    label: { fontSize: 9, fontWeight: "800", color: "#E8541C", letterSpacing: 1.5, marginBottom: 14 },
-    row: { flexDirection: "row", alignItems: "center" },
-    item: { flex: 1, alignItems: "center", gap: 4 },
-    divider: { width: 0.5, height: 40, backgroundColor: "#f0e6dc" },
-    val: { fontSize: 22, fontWeight: "800", color: "#1a0e08" },
-    key: { fontSize: 11, color: "#a8856b" },
+    card: { backgroundColor: "#fff", borderRadius: 20, borderWidth: 0.5, borderColor: "#f0e6dc", flexDirection: "row", overflow: "hidden" },
+    item: { flex: 1, alignItems: "center", paddingVertical: 18, gap: 4 },
+    iconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center", marginBottom: 4 },
+    divider: { width: 0.5, backgroundColor: "#f5ede3", marginVertical: 16 },
+    val: { fontSize: 26, fontWeight: "800", color: "#1a0e08", letterSpacing: -0.5 },
+    key: { fontSize: 11, color: "#a8856b", fontWeight: "500" },
 });
