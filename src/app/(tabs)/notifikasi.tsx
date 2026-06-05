@@ -11,6 +11,7 @@ import { getComments } from "@/lib/comments";
 import NotifGroup from "@/components/user/Notifikasi/NotifGroup";
 import { type Notif, type NotifGrup } from "@/components/user/Notifikasi/NotifItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNotifStore } from "@/store/notif.store";
 
 const ORANGE = "#E8541C";
 const GROUPS: NotifGrup[] = ["laporan", "sosial", "sistem"];
@@ -114,6 +115,7 @@ async function generateNotifs(userId: string, readIds: Set<string>): Promise<Not
 
 export default function NotifikasiPage() {
     const user = useAuthStore((s) => s.user);
+    const { setUnreadCount } = useNotifStore(); // ← di dalam komponen
     const [notifs, setNotifs] = useState<Notif[]>([]);
     const [loading, setLoading] = useState(true);
     const userId = user?.id ?? "";
@@ -126,6 +128,7 @@ export default function NotifikasiPage() {
                 const readIds = await getReadIds(userId);
                 const result = await generateNotifs(userId, readIds);
                 setNotifs(result);
+                setUnreadCount(result.filter((n) => !n.dibaca).length); // ← set count
             } finally {
                 setLoading(false);
             }
@@ -140,6 +143,7 @@ export default function NotifikasiPage() {
         readIds.add(id);
         await saveReadIds(userId, readIds);
         setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, dibaca: true } : n));
+        setUnreadCount(notifs.filter((n) => !n.dibaca && n.id !== id).length);
     };
 
     const handleMarkAllRead = async () => {
@@ -147,13 +151,13 @@ export default function NotifikasiPage() {
         notifs.forEach((n) => readIds.add(n.id));
         await saveReadIds(userId, readIds);
         setNotifs((prev) => prev.map((n) => ({ ...n, dibaca: true })));
+        setUnreadCount(0);
     };
 
     const byGrup = (grup: NotifGrup) => notifs.filter((n) => n.grup === grup);
 
     return (
         <SafeAreaView style={styles.root}>
-            {/* Header */}
             <View style={styles.header}>
                 <View>
                     <View style={styles.titleRow}>

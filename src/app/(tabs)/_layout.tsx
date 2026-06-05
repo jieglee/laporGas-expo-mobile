@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { Home, Compass, Plus, Bell, User } from "lucide-react-native";
 import {
-    StyleSheet, View, ActivityIndicator,
+    StyleSheet, View, Text, ActivityIndicator,
     Animated, TouchableOpacity, Dimensions,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth.store";
+import { useNotifStore } from "@/store/notif.store";
 
 const ORANGE = "#E8541C";
 const BG = "#F5EDE3";
@@ -25,7 +26,7 @@ const TABS = [
 
 function buildPath(cx: number) {
     const r = 40;
-    const d = 72; // full height — notch sampai atas
+    const d = 72;
     const h = 72;
     return [
         `M0,0`,
@@ -40,6 +41,8 @@ function buildPath(cx: number) {
 }
 
 function AnimatedTabBar({ state, navigation }: any) {
+    const { unreadCount } = useNotifStore();
+
     const notchX = useRef(
         new Animated.Value(TAB_WIDTH * state.index + TAB_WIDTH / 2)
     ).current;
@@ -74,20 +77,17 @@ function AnimatedTabBar({ state, navigation }: any) {
         });
 
         notchAnim.start();
-
         return () => notchX.removeListener(listenerId);
     }, [state.index]);
 
     return (
         <View style={styles.tabBar}>
-            {/* SVG notch background */}
             <View style={StyleSheet.absoluteFill} pointerEvents="none">
                 <Svg width={width} height={72}>
                     <Path d={svgPath} fill={BG} />
                 </Svg>
             </View>
 
-            {/* Sliding bubble */}
             <Animated.View
                 style={[styles.bubble, { transform: [{ translateX: bubbleX }] }]}
                 pointerEvents="none"
@@ -138,6 +138,13 @@ function AnimatedTabBar({ state, navigation }: any) {
                                 color={isFocused ? "#fff" : ICON_INACTIVE}
                                 strokeWidth={isFocused ? 2.2 : 1.8}
                             />
+                            {index === 3 && unreadCount > 0 && (
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? "9+" : String(unreadCount)}
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                         <Animated.Text style={[
                             styles.tabLabel,
@@ -175,13 +182,13 @@ export default function TabsLayout() {
 
     return (
         <Tabs
-    tabBar={(props) => <AnimatedTabBar {...props} />}
-    screenOptions={{
-        headerShown: false,
-        // @ts-ignore
-        contentStyle: { backgroundColor: "#FFFCFA" },
-    }}
->
+            tabBar={(props) => <AnimatedTabBar {...props} />}
+            screenOptions={{
+                headerShown: false,
+                // @ts-ignore
+                contentStyle: { backgroundColor: "#FFFCFA" },
+            }}
+        >
             <Tabs.Screen name="index" />
             <Tabs.Screen name="explore" />
             <Tabs.Screen name="buat-laporan" />
@@ -245,5 +252,23 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.4,
         shadowRadius: 10,
         elevation: 10,
+    },
+    badge: {
+        position: "absolute",
+        top: -4,
+        right: -4,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: "#EF4444",
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1.5,
+        borderColor: BG,
+    },
+    badgeText: {
+        fontSize: 8,
+        fontWeight: "800",
+        color: "#fff",
     },
 });
