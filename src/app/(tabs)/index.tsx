@@ -7,7 +7,6 @@ import HeroSection from "@/components/user/Home/HeroSection";
 import CategorySection from "@/components/user/Home/CategorySection";
 import NearbySection from "@/components/user/Home/NearbySection";
 import TrendingSection from "@/components/user/Home/TrendingSection";
-import CTASection from "@/components/user/Home/CTASection";
 import { View } from "react-native";
 
 export default function BerandaPage() {
@@ -57,7 +56,6 @@ export default function BerandaPage() {
                         <>
                             <NearbySection reports={nearbyReports} />
                             <TrendingSection reports={trendingReports} />
-                            <CTASection />
                         </>
                     )}
                 </View>

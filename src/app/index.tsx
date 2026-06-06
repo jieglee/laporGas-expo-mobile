@@ -11,9 +11,10 @@ export default function Index() {
 
   useEffect(() => {
     async function init() {
+      await AsyncStorage.removeItem("onboarding_done"); // sementara doangggg
       await loadFromStorage();
       const done = await AsyncStorage.getItem("onboarding_done");
-      setOnboardingDone(done === "true");
+      setOnboardingDone(!!done);
       setLoading(false);
     }
     init();

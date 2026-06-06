@@ -51,7 +51,6 @@ export default function ExplorePage() {
                 onKategori={setKategori}
                 totalCount={filtered.length}
             />
-
             {loading ? (
                 <View style={styles.center}>
                     <ActivityIndicator color="#E8541C" />
@@ -60,10 +59,9 @@ export default function ExplorePage() {
             ) : filtered.length === 0 ? (
                 <ExploreEmpty />
             ) : (
-                <ExploreMap
-                    reports={filtered}
-                    onPressReport={(id) => router.push(`/laporan/${id}` as any)}
-                />
+                <View style={{ flex: 1, position: "relative" }}>
+                    <ExploreMap reports={filtered} />
+                </View>
             )}
         </SafeAreaView>
     );

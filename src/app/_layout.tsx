@@ -9,44 +9,35 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import CustomSplash from "@/components/SplashScreen";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+// In-memory: false saat cold start, true setelah splash ditampilkan
+// Hot reload ga reset ini, jadi splash ga muncul tiap refresh
+let splashShown = false;
+
 export default function RootLayout() {
     const [loaded] = useFonts({});
-    const [showSplash, setShowSplash] = useState(false);
-    const [splashVisible, setSplashVisible] = useState(false);
+    const [showSplash, setShowSplash] = useState(!splashShown);
+    const [splashVisible, setSplashVisible] = useState(!splashShown);
 
     useEffect(() => {
         if (loaded) SplashScreen.hideAsync();
     }, [loaded]);
 
     useEffect(() => {
-        async function checkSplash() {
-            try {
-                const shown = await AsyncStorage.getItem("splash_shown");
-                if (!shown) {
-                    setShowSplash(true);
-                    setSplashVisible(true);
-                    await AsyncStorage.setItem("splash_shown", "1");
+        if (splashShown) return;
+        splashShown = true;
 
-                    setTimeout(() => {
-                        setSplashVisible(false);
-                        setTimeout(() => setShowSplash(false), 1200);
-                    }, 2200);
-                }
-            } catch {
+        const timer = setTimeout(() => {
+            setSplashVisible(false);
+            setTimeout(() => setShowSplash(false), 1200);
+        }, 2200);
 
-                setShowSplash(true);
-                setSplashVisible(true);
-            }
-        }
-        checkSplash();
+        return () => clearTimeout(timer);
     }, []);
-
 
     return (
         <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFCFA" }}>

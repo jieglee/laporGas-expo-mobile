@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
-import {
-    View, Text, ScrollView,
-    StyleSheet, ActivityIndicator, Alert, Platform,
-} from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert, Platform, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/auth.store";
 import { getReports, type Report } from "@/lib/report";
@@ -35,17 +33,20 @@ export default function ProfilPage() {
         }
     }, [token, authLoading]);
 
-    useEffect(() => {
-        async function fetchReports() {
-            if (!user?.id) return;
-            try {
-                const data = await getReports();
-                setReports(data.filter((r) => Number(r.user_id) === Number(user.id)));
-            } catch { setReports([]); }
-            finally { setLoading(false); }
-        }
-        fetchReports();
-    }, [user?.id]);
+    useFocusEffect(
+        useCallback(() => {
+            async function fetchReports() {
+                if (!user?.id) return;
+                setLoading(true);
+                try {
+                    const data = await getReports();
+                    setReports(data.filter((r) => Number(r.user_id) === Number(user.id)));
+                } catch { setReports([]); }
+                finally { setLoading(false); }
+            }
+            fetchReports();
+        }, [user?.id])
+    );
 
     const handleLogout = () => {
         if (Platform.OS === "web") {

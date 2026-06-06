@@ -10,15 +10,19 @@ interface Props {
     totalCount: number;
 }
 
-const KATEGORI_ICONS: Record<Kategori, React.ReactNode> = {
-    all:              <Map size={13} color="inherit" strokeWidth={2} />,
-    infrastruktur:    <Building2 size={13} color="inherit" strokeWidth={2} />,
-    "fasilitas-umum": <Landmark size={13} color="inherit" strokeWidth={2} />,
-    kebersihan:       <Trash2 size={13} color="inherit" strokeWidth={2} />,
-    "lalu-lintas":    <Car size={13} color="inherit" strokeWidth={2} />,
-};
-
 const ORANGE = "#E8541C";
+const GRAY = "#a8856b";
+
+function getIcon(value: Kategori, active: boolean) {
+    const color = active ? "#fff" : GRAY;
+    switch (value) {
+        case "all":            return <Map size={13} color={color} strokeWidth={2} />;
+        case "infrastruktur":  return <Building2 size={13} color={color} strokeWidth={2} />;
+        case "fasilitas-umum": return <Landmark size={13} color={color} strokeWidth={2} />;
+        case "kebersihan":     return <Trash2 size={13} color={color} strokeWidth={2} />;
+        case "lalu-lintas":    return <Car size={13} color={color} strokeWidth={2} />;
+    }
+}
 
 export default function ExploreHeader({ search, onSearch, kategori, onKategori, totalCount }: Props) {
     return (
@@ -27,13 +31,14 @@ export default function ExploreHeader({ search, onSearch, kategori, onKategori, 
             <View style={styles.titleRow}>
                 <Text style={styles.title}>Explore</Text>
                 <Text style={styles.subtitle}>
-                    <Text style={styles.count}>{totalCount}</Text> laporan dari komunitas
+                    <Text style={styles.count}>{totalCount}</Text>
+                    {" "}laporan dari komunitas
                 </Text>
             </View>
 
             {/* Search */}
             <View style={styles.searchWrap}>
-                <Search size={15} color="#a8856b" strokeWidth={2} style={styles.searchIcon} />
+                <Search size={15} color={GRAY} strokeWidth={2} />
                 <TextInput
                     value={search}
                     onChangeText={onSearch}
@@ -43,7 +48,7 @@ export default function ExploreHeader({ search, onSearch, kategori, onKategori, 
                 />
                 {search.length > 0 && (
                     <TouchableOpacity onPress={() => onSearch("")} style={styles.clearBtn} activeOpacity={0.7}>
-                        <X size={12} color="#a8856b" strokeWidth={2} />
+                        <X size={12} color={GRAY} strokeWidth={2} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -56,7 +61,6 @@ export default function ExploreHeader({ search, onSearch, kategori, onKategori, 
             >
                 {KATEGORI_TABS.map((tab) => {
                     const active = kategori === tab.value;
-                    const Icon = KATEGORI_ICONS[tab.value];
                     return (
                         <TouchableOpacity
                             key={tab.value}
@@ -64,9 +68,7 @@ export default function ExploreHeader({ search, onSearch, kategori, onKategori, 
                             activeOpacity={0.75}
                             style={[styles.tab, active ? styles.tabActive : styles.tabInactive]}
                         >
-                            <View style={{ opacity: active ? 1 : 0.6 }}>
-                                {Icon}
-                            </View>
+                            {getIcon(tab.value, active)}
                             <Text style={[styles.tabText, active ? styles.tabTextActive : styles.tabTextInactive]}>
                                 {tab.label}
                             </Text>
@@ -95,12 +97,12 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         marginBottom: 2,
     },
-    subtitle: { fontSize: 13, color: "#a8856b" },
+    subtitle: { fontSize: 13, color: GRAY },
     count: { fontWeight: "700", color: ORANGE },
-
     searchWrap: {
         flexDirection: "row",
         alignItems: "center",
+        gap: 8,
         backgroundColor: "#fafaf8",
         borderWidth: 0.5,
         borderColor: "#f0e6dc",
@@ -109,21 +111,19 @@ const styles = StyleSheet.create({
         height: 44,
         marginBottom: 12,
     },
-    searchIcon: { marginRight: 8 },
     searchInput: {
         flex: 1,
         fontSize: 14,
         color: "#1a0e08",
-        height: "100%",
     },
     clearBtn: {
-        width: 24, height: 24,
+        width: 24,
+        height: 24,
         borderRadius: 12,
         backgroundColor: "#f0e6dc",
         alignItems: "center",
         justifyContent: "center",
     },
-
     tabList: { gap: 8, paddingBottom: 2 },
     tab: {
         flexDirection: "row",

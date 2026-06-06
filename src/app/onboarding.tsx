@@ -92,18 +92,18 @@ export default function OnboardingPage() {
 
     const choiceAnim = useRef(new Animated.Value(300)).current;
 
-useEffect(() => {
-    if (showChoice) {
-        Animated.spring(choiceAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 65,
-            friction: 11,
-        }).start();
-    } else {
-        choiceAnim.setValue(300);
-    }
-}, [showChoice]);
+    useEffect(() => {
+        if (showChoice) {
+            Animated.spring(choiceAnim, {
+                toValue: 0,
+                useNativeDriver: true,
+                tension: 65,
+                friction: 11,
+            }).start();
+        } else {
+            choiceAnim.setValue(300);
+        }
+    }, [showChoice]);
 
     const handleNext = () => {
         if (activeIndex < SLIDES.length - 1) {
@@ -138,11 +138,21 @@ useEffect(() => {
                     </Svg>
                     <Text style={styles.logoText}>LaporGas</Text>
                 </View>
-                {activeIndex < SLIDES.length - 1 && (
-                    <TouchableOpacity onPress={handleSkip}>
-                        <Text style={styles.skipText}>Lewati</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    {/* DEV ONLY — hapus sebelum production */}
+                    <TouchableOpacity onPress={async () => {
+                        await AsyncStorage.removeItem("onboarding_done");
+                        alert("Reset! Restart app.");
+                    }}>
+                        <Text style={{ fontSize: 11, color: "#ccc" }}>reset</Text>
                     </TouchableOpacity>
-                )}
+
+                    {activeIndex < SLIDES.length - 1 && (
+                        <TouchableOpacity onPress={handleSkip}>
+                            <Text style={styles.skipText}>Lewati</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
 
             {/* Slides */}
@@ -194,29 +204,29 @@ useEffect(() => {
             </View>
 
             {/* Choice Modal */}
-{showChoice && (
-    <View style={styles.overlay}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setShowChoice(false)} />
-        <Animated.View style={[styles.choiceCard, { transform: [{ translateY: choiceAnim }] }]}>
-            <View style={styles.choiceLogoWrap}>
-                <Svg width={32} height={32} viewBox="0 0 24 24">
-                    <Path fill={ORANGE} fillRule="evenodd" d={LOGO_PATH} clipRule="evenodd" />
-                </Svg>
-            </View>
+            {showChoice && (
+                <View style={styles.overlay}>
+                    <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setShowChoice(false)} />
+                    <Animated.View style={[styles.choiceCard, { transform: [{ translateY: choiceAnim }] }]}>
+                        <View style={styles.choiceLogoWrap}>
+                            <Svg width={32} height={32} viewBox="0 0 24 24">
+                                <Path fill={ORANGE} fillRule="evenodd" d={LOGO_PATH} clipRule="evenodd" />
+                            </Svg>
+                        </View>
 
-            <Text style={styles.choiceTitle}>Selamat Datang!</Text>
-            <Text style={styles.choiceSub}>Sudah punya akun atau mau daftar dulu?</Text>
+                        <Text style={styles.choiceTitle}>Selamat Datang!</Text>
+                        <Text style={styles.choiceSub}>Sudah punya akun atau mau daftar dulu?</Text>
 
-            <TouchableOpacity style={styles.choicePrimary} onPress={goLogin} activeOpacity={0.85}>
-                <Text style={styles.choicePrimaryText}>Masuk</Text>
-            </TouchableOpacity>
+                        <TouchableOpacity style={styles.choicePrimary} onPress={goLogin} activeOpacity={0.85}>
+                            <Text style={styles.choicePrimaryText}>Masuk</Text>
+                        </TouchableOpacity>
 
-            <TouchableOpacity style={styles.choiceSecondary} onPress={goRegister} activeOpacity={0.85}>
-                <Text style={styles.choiceSecondaryText}>Daftar Akun Baru</Text>
-            </TouchableOpacity>
-        </Animated.View>
-    </View>
-)}
+                        <TouchableOpacity style={styles.choiceSecondary} onPress={goRegister} activeOpacity={0.85}>
+                            <Text style={styles.choiceSecondaryText}>Daftar Akun Baru</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
+            )}
         </View>
     );
 }

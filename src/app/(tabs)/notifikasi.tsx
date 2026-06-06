@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
-import {
-    View, Text, ScrollView, TouchableOpacity,
-    StyleSheet, ActivityIndicator,
-} from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Bell } from "lucide-react-native";
 import { useAuthStore } from "@/store/auth.store";
@@ -58,7 +56,7 @@ async function getReadIds(userId: string): Promise<Set<string>> {
 async function saveReadIds(userId: string, ids: Set<string>) {
     try {
         await AsyncStorage.setItem(getReadKey(userId), JSON.stringify([...ids]));
-    } catch {}
+    } catch { }
 }
 
 async function generateNotifs(userId: string, readIds: Set<string>): Promise<Notif[]> {
@@ -97,7 +95,7 @@ async function generateNotifs(userId: string, readIds: Set<string>): Promise<Not
                     reportId: report.id,
                 });
             }
-        } catch {}
+        } catch { }
     }
 
     const sistemId = "sistem_welcome";
@@ -120,21 +118,33 @@ export default function NotifikasiPage() {
     const [loading, setLoading] = useState(true);
     const userId = user?.id ?? "";
 
-    useEffect(() => {
-        if (!userId) return;
-        async function load() {
-            try {
-                setLoading(true);
-                const readIds = await getReadIds(userId);
-                const result = await generateNotifs(userId, readIds);
-                setNotifs(result);
-                setUnreadCount(result.filter((n) => !n.dibaca).length); // ← set count
-            } finally {
-                setLoading(false);
+    useFocusEffect(
+        useCallback(() => {
+            if (!userId) return;
+            async function load() {
+                try {
+                    setLoading(true);
+                    const readIds = await getReadIds(userId);
+                    const result = await generateNotifs(userId, readIds);
+                    setNotifs(result);
+
+                    // Auto mark all read saat halaman dibuka
+                    const unread = result.filter((n) => !n.dibaca);
+                    if (unread.length > 0) {
+                        const newReadIds = new Set(readIds);
+                        unread.forEach((n) => newReadIds.add(n.id));
+                        await saveReadIds(userId, newReadIds);
+                        setNotifs(result.map((n) => ({ ...n, dibaca: true })));
+                    }
+
+                    setUnreadCount(0);
+                } finally {
+                    setLoading(false);
+                }
             }
-        }
-        load();
-    }, [userId]);
+            load();
+        }, [userId])
+    );
 
     const unreadTotal = notifs.filter((n) => !n.dibaca).length;
 

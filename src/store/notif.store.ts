@@ -9,3 +9,4 @@ export const useNotifStore = create<NotifState>((set) => ({
     unreadCount: 0,
     setUnreadCount: (count) => set({ unreadCount: count }),
 }));
+
