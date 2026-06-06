@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, ActivityIndicator, ScrollView } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { getReports, type Report } from "@/lib/report";
-import ReportGrid from "@/components/common-ui/ReportGrid";
 import ExploreHeader from "@/components/user/Explore/ExploreHeader";
+import ExploreMap from "@/components/user/Explore/ExploreMap";
 import ExploreEmpty from "@/components/user/Explore/ExploreEmpty";
 import { type Kategori, mapKategori } from "@/components/user/Explore/types";
 
 export default function ExplorePage() {
+    const router = useRouter();
     const [search, setSearch] = useState("");
     const [kategori, setKategori] = useState<Kategori>("all");
     const [reports, setReports] = useState<Report[]>([]);
@@ -49,17 +51,19 @@ export default function ExplorePage() {
                 onKategori={setKategori}
                 totalCount={filtered.length}
             />
+
             {loading ? (
-                <ActivityIndicator color="#E8541C" style={{ marginTop: 48 }} />
+                <View style={styles.center}>
+                    <ActivityIndicator color="#E8541C" />
+                    <Text style={styles.loadingText}>Memuat laporan...</Text>
+                </View>
             ) : filtered.length === 0 ? (
                 <ExploreEmpty />
             ) : (
-                <ScrollView
-                    contentContainerStyle={styles.list}
-                    showsVerticalScrollIndicator={false}
-                >
-                    <ReportGrid reports={filtered} variant="status" />
-                </ScrollView>
+                <ExploreMap
+                    reports={filtered}
+                    onPressReport={(id) => router.push(`/laporan/${id}` as any)}
+                />
             )}
         </SafeAreaView>
     );
@@ -67,5 +71,6 @@ export default function ExplorePage() {
 
 const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: "#FFFCFA" },
-    list: { padding: 16 },
+    center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
+    loadingText: { fontSize: 13, color: "#a8856b" },
 });
