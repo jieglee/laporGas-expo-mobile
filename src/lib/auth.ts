@@ -26,11 +26,11 @@ export async function registerUser({ name, email, password }: RegisterPayload) {
 }
 
 export async function verifyIdentity(email: string, name: string) {
-    const res = await api.post("/auth/verify-identity", { email, name });
+    const res = await api.post("/verify-identity", { email, name });
     return res.data;
 }
 
 export async function resetPasswordByName(email: string, name: string, newPassword: string) {
-    const res = await api.post("/auth/reset-password", { email, name, newPassword });
+    const res = await api.post("/reset-password", { email, name, newPassword });
     return res.data;
 }
