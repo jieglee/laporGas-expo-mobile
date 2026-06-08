@@ -1,4 +1,4 @@
- import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const API = process.env.EXPO_PUBLIC_API_URL;
 
@@ -39,24 +39,36 @@ export function useAICategorizer({
             return;
         }
         if (timerRef.current) clearTimeout(timerRef.current);
+
         timerRef.current = setTimeout(async () => {
             lastInputRef.current = inputKey;
             setLoading(true);
             setError(false);
             try {
-                const res = await fetch(`${API}/ai/categorize`, {
+                const url = `${API}/ai/categorize`;
+                console.log("[AI] Fetching:", url);
+                const res = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ title, description }),
                 });
                 const data = await res.json();
+                console.log("[AI] Response:", data);
+
                 if (data.success && data.data) {
-                    setLastResult(data.data);
-                    onResult(data.data);
+                    // Normalize category_id ke string
+                    const result: AIResult = {
+                        category_id: String(data.data.category_id),
+                        priority: data.data.priority,
+                        confidence: data.data.confidence,
+                    };
+                    setLastResult(result);
+                    onResult(result);
                 } else {
                     setError(true);
                 }
-            } catch {
+            } catch (err) {
+                console.error("[AI] Error:", err);
                 setError(true);
             } finally {
                 setLoading(false);
