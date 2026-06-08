@@ -1,17 +1,16 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { Home, Compass, Plus, Bell, User } from "lucide-react-native";
 import {
     StyleSheet, View, Text, ActivityIndicator,
-    Animated, TouchableOpacity, Dimensions,
+    TouchableOpacity, Dimensions,
 } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotifStore } from "@/store/notif.store";
 
 const ORANGE = "#E8541C";
-const BG = "#F5EDE3";
-const ICON_INACTIVE = "#a8856b";
+const ORANGE_LIGHT = "#FFF5EE";
+const INACTIVE = "#b8a49a";
 const { width } = Dimensions.get("window");
 const TAB_COUNT = 5;
 const TAB_WIDTH = width / TAB_COUNT;
@@ -24,74 +23,13 @@ const TABS = [
     { name: "profil",       icon: User,    label: "Profil"     },
 ];
 
-function buildPath(cx: number) {
-    const r = 40;
-    const d = 72;
-    const h = 72;
-    return [
-        `M0,0`,
-        `L${cx - r - 20},0`,
-        `C${cx - r},0 ${cx - r + 8},${d * 0.4} ${cx},${d * 0.45}`,
-        `C${cx + r - 8},${d * 0.4} ${cx + r},0 ${cx + r + 20},0`,
-        `L${width},0`,
-        `L${width},${h}`,
-        `L0,${h}`,
-        `Z`,
-    ].join(" ");
-}
-
-function AnimatedTabBar({ state, navigation }: any) {
+function SimpleTabBar({ state, navigation }: any) {
     const { unreadCount } = useNotifStore();
-
-    const notchX = useRef(
-        new Animated.Value(TAB_WIDTH * state.index + TAB_WIDTH / 2)
-    ).current;
-
-    const bubbleX = useRef(
-        new Animated.Value(TAB_WIDTH * state.index + TAB_WIDTH / 2 - 20)
-    ).current;
-
-    const [svgPath, setSvgPath] = useState(
-        buildPath(TAB_WIDTH * state.index + TAB_WIDTH / 2)
-    );
-
-    useEffect(() => {
-        const targetX = TAB_WIDTH * state.index + TAB_WIDTH / 2;
-
-        const notchAnim = Animated.spring(notchX, {
-            toValue: targetX,
-            useNativeDriver: false,
-            tension: 50,
-            friction: 10,
-        });
-
-        Animated.spring(bubbleX, {
-            toValue: targetX - 20,
-            useNativeDriver: true,
-            tension: 55,
-            friction: 10,
-        }).start();
-
-        const listenerId = notchX.addListener(({ value }) => {
-            setSvgPath(buildPath(value));
-        });
-
-        notchAnim.start();
-        return () => notchX.removeListener(listenerId);
-    }, [state.index]);
 
     return (
         <View style={styles.tabBar}>
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-                <Svg width={width} height={72}>
-                    <Path d={svgPath} fill={BG} />
-                </Svg>
-            </View>
-
-            <Animated.View
-                style={[styles.bubble, { transform: [{ translateX: bubbleX }] }]}
-                pointerEvents="none"
-            />
+            {/* Top border accent */}
+            <View style={styles.topBorder} />
 
             {state.routes.map((route: any, index: number) => {
                 const isFocused = state.index === index;
@@ -116,10 +54,10 @@ function AnimatedTabBar({ state, navigation }: any) {
                             key={route.key}
                             style={[styles.tabItem, { width: TAB_WIDTH }]}
                             onPress={onPress}
-                            activeOpacity={0.8}
+                            activeOpacity={0.85}
                         >
                             <View style={styles.fab}>
-                                <Plus size={24} color="#fff" strokeWidth={2.5} />
+                                <Plus size={22} color="#fff" strokeWidth={2.5} />
                             </View>
                         </TouchableOpacity>
                     );
@@ -130,14 +68,21 @@ function AnimatedTabBar({ state, navigation }: any) {
                         key={route.key}
                         style={[styles.tabItem, { width: TAB_WIDTH }]}
                         onPress={onPress}
-                        activeOpacity={0.8}
+                        activeOpacity={0.75}
                     >
-                        <View style={styles.iconWrap}>
+                        {/* Active indicator dot */}
+                        {isFocused && <View style={styles.activeDot} />}
+
+                        <View style={[
+                            styles.iconWrap,
+                            isFocused && styles.iconWrapActive,
+                        ]}>
                             <Icon
-                                size={22}
-                                color={isFocused ? "#fff" : ICON_INACTIVE}
+                                size={20}
+                                color={isFocused ? ORANGE : INACTIVE}
                                 strokeWidth={isFocused ? 2.2 : 1.8}
                             />
+                            {/* Notif badge */}
                             {index === 3 && unreadCount > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
@@ -146,12 +91,16 @@ function AnimatedTabBar({ state, navigation }: any) {
                                 </View>
                             )}
                         </View>
-                        <Animated.Text style={[
-                            styles.tabLabel,
-                            { color: isFocused ? ORANGE : ICON_INACTIVE }
-                        ]}>
-                            {label}
-                        </Animated.Text>
+
+                        {label ? (
+                            <Text style={[
+                                styles.tabLabel,
+                                { color: isFocused ? ORANGE : INACTIVE },
+                                isFocused && styles.tabLabelActive,
+                            ]}>
+                                {label}
+                            </Text>
+                        ) : null}
                     </TouchableOpacity>
                 );
             })}
@@ -182,7 +131,7 @@ export default function TabsLayout() {
 
     return (
         <Tabs
-            tabBar={(props) => <AnimatedTabBar {...props} />}
+            tabBar={(props) => <SimpleTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
                 // @ts-ignore
@@ -200,71 +149,83 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
     tabBar: {
-        height: 72,
+        height: 68,
         flexDirection: "row",
-        backgroundColor: "transparent",
+        backgroundColor: "#fff",
+        borderTopWidth: 0,
+        shadowColor: "#1a0e08",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 12,
         position: "relative",
-        overflow: "visible",
     },
-    bubble: {
+    topBorder: {
         position: "absolute",
-        top: 10,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: ORANGE,
-        shadowColor: ORANGE,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
-        elevation: 8,
-        zIndex: 0,
+        top: 0, left: 0, right: 0,
+        height: 1,
+        backgroundColor: "#f0e6dc",
     },
     tabItem: {
         alignItems: "center",
         justifyContent: "center",
-        height: 72,
-        gap: 4,
-        zIndex: 1,
-        width: TAB_WIDTH,
+        height: 68,
+        gap: 3,
+        position: "relative",
+    },
+    activeDot: {
+        position: "absolute",
+        top: 0,
+        width: 24,
+        height: 2.5,
+        borderRadius: 99,
+        backgroundColor: ORANGE,
     },
     iconWrap: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
     },
+    iconWrapActive: {
+        backgroundColor: ORANGE_LIGHT,
+    },
     tabLabel: {
         fontSize: 10,
-        fontWeight: "600",
-        letterSpacing: 0.2,
+        fontWeight: "500",
+        letterSpacing: 0.1,
+    },
+    tabLabelActive: {
+        fontWeight: "700",
     },
     fab: {
-        width: 54,
-        height: 54,
-        borderRadius: 27,
+        width: 50,
+        height: 50,
+        borderRadius: 16,
         backgroundColor: ORANGE,
         alignItems: "center",
         justifyContent: "center",
         shadowColor: ORANGE,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
         shadowRadius: 10,
-        elevation: 10,
+        elevation: 8,
+        marginBottom: 8,
     },
     badge: {
         position: "absolute",
-        top: -4,
-        right: -4,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        top: 2,
+        right: 2,
+        minWidth: 14,
+        height: 14,
+        borderRadius: 7,
         backgroundColor: "#EF4444",
         alignItems: "center",
         justifyContent: "center",
+        paddingHorizontal: 3,
         borderWidth: 1.5,
-        borderColor: BG,
+        borderColor: "#fff",
     },
     badgeText: {
         fontSize: 8,
