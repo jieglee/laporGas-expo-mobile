@@ -24,3 +24,13 @@ export async function registerUser({ name, email, password }: RegisterPayload) {
     const res = await api.post("/register", { name, email, password });
     return res.data;
 }
+
+export async function verifyIdentity(email: string, name: string) {
+    const res = await api.post("/auth/verify-identity", { email, name });
+    return res.data;
+}
+
+export async function resetPasswordByName(email: string, name: string, newPassword: string) {
+    const res = await api.post("/auth/reset-password", { email, name, newPassword });
+    return res.data;
+}

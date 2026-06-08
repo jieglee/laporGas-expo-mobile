@@ -7,7 +7,9 @@ export interface Comment {
     name: string;
     comment: string;
     type: "public" | "official";
+    parent_id: number | null;
     created_at: string;
+    replies: Comment[];
 }
 
 export async function getComments(reportId: number): Promise<Comment[]> {
@@ -18,6 +20,7 @@ export async function getComments(reportId: number): Promise<Comment[]> {
 export async function createComment(payload: {
     report_id: number;
     comment: string;
+    parent_id?: number | null;
 }): Promise<Comment> {
     const res = await api.post("/comments", payload);
     return res.data;

@@ -86,7 +86,6 @@ html,body,#map{width:100%;height:100%;overflow:hidden;touch-action:auto}
 <body>
 <div id="map"></div>
 <div id="legend"><div id="legend-title">STATUS</div>${legend}</div>
-<div id="count">${valid.length} laporan</div>
 <script>
 var map = L.map('map', {
     zoomControl: false,

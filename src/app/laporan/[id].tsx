@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import { getReportById, type Report } from "@/lib/report";
+import { getReportById, getUpvoteStatus, toggleUpvote, type Report } from "@/lib/report";
 import { getComments, type Comment } from "@/lib/comments";
 import LaporanHeader from "@/components/user/LaporanDetail/LaporanHeader";
 import LaporanFoto from "@/components/user/LaporanDetail/LaporanFoto";
@@ -24,6 +24,11 @@ export default function LaporanDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // ── Upvote state ──
+    const [upvoted, setUpvoted] = useState(false);
+    const [upvoteCount, setUpvoteCount] = useState(0);
+    const [upvoteLoading, setUpvoteLoading] = useState(false);
+
     const goBack = () => {
         if (router.canGoBack()) router.back();
         else router.replace("/(tabs)" as any);
@@ -39,13 +44,57 @@ export default function LaporanDetailPage() {
                 ]);
                 setReport(reportData);
                 setComments(commentsData);
+                setUpvoteCount(reportData.upvote_count ?? 0);
             } catch { setError("Laporan tidak ditemukan"); }
             finally { setLoading(false); }
         }
         fetchData();
     }, [id]);
 
-    const handleCommentAdded = (comment: Comment) => setComments((prev) => [...prev, comment]);
+    // Fetch upvote status setelah report loaded
+    useEffect(() => {
+        if (!report) return;
+        getUpvoteStatus(report.id)
+            .then(({ upvote_count, upvoted: isUpvoted }) => {
+                setUpvoteCount(upvote_count);
+                setUpvoted(isUpvoted);
+            })
+            .catch(() => { });
+    }, [report?.id]);
+
+    const handleUpvote = async () => {
+        if (upvoteLoading || !report) return;
+        try {
+            setUpvoteLoading(true);
+            // Optimistic update
+            setUpvoted((prev) => !prev);
+            setUpvoteCount((prev) => upvoted ? prev - 1 : prev + 1);
+            const result = await toggleUpvote(report.id);
+            setUpvoted(result.upvoted);
+            setUpvoteCount(result.upvote_count);
+        } catch {
+            // Rollback
+            setUpvoted((prev) => !prev);
+            setUpvoteCount((prev) => upvoted ? prev + 1 : prev - 1);
+        } finally {
+            setUpvoteLoading(false);
+        }
+    };
+
+    const handleCommentAdded = (comment: Comment) => {
+        if (comment.parent_id) {
+            // Tambah reply ke parent comment
+            setComments((prev) =>
+                prev.map((c) =>
+                    c.id === comment.parent_id
+                        ? { ...c, replies: [...(c.replies ?? []), comment] }
+                        : c
+                )
+            );
+        } else {
+            setComments((prev) => [...prev, comment]);
+        }
+    };
     const handleCommentDeleted = (commentId: number) => setComments((prev) => prev.filter((c) => c.id !== commentId));
 
     if (loading) return (
@@ -75,7 +124,6 @@ export default function LaporanDetailPage() {
 
     return (
         <SafeAreaView style={styles.root}>
-            {/* Top bar */}
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={goBack} style={styles.backBtn} activeOpacity={0.7}>
                     <ArrowLeft size={17} color="#3d2817" strokeWidth={2.2} />
@@ -84,22 +132,23 @@ export default function LaporanDetailPage() {
                 <View style={{ width: 36 }} />
             </View>
 
-            <ScrollView
-                contentContainerStyle={styles.scroll}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Foto di paling atas tanpa padding */}
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
                 <View style={styles.fotoWrap}>
                     <LaporanFoto report={report} />
                 </View>
 
-                {/* Konten dengan padding */}
                 <View style={styles.content}>
                     <LaporanHeader report={report} />
                     <LaporanDeskripsi report={report} />
 
-                    {/* Stats row */}
-                    <LaporanStats report={report} comments={comments} />
+                    <LaporanStats
+                        report={report}
+                        comments={comments}
+                        upvoted={upvoted}
+                        upvoteCount={upvoteCount}
+                        upvoteLoading={upvoteLoading}
+                        onUpvote={handleUpvote}
+                    />
 
                     <LaporanLokasi report={report} />
 
@@ -124,7 +173,6 @@ export default function LaporanDetailPage() {
 
 const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: "#FFFCFA" },
-
     topBar: {
         flexDirection: "row", alignItems: "center", justifyContent: "space-between",
         paddingHorizontal: 16, paddingVertical: 12,
@@ -140,16 +188,9 @@ const styles = StyleSheet.create({
         fontSize: 15, fontWeight: "700", color: "#1a0e08",
         flex: 1, textAlign: "center", marginHorizontal: 8,
     },
-
     scroll: { paddingBottom: 48 },
-
-    // Foto tanpa padding, edge-to-edge
     fotoWrap: { marginBottom: 0 },
-
-    // Semua konten di bawah foto
     content: { padding: 14, gap: 12 },
-
-    // Loading & error
     center: { flex: 1, backgroundColor: "#FFFCFA", alignItems: "center", justifyContent: "center", padding: 24 },
     loadingCard: { alignItems: "center", gap: 14 },
     loadingText: { fontSize: 13, color: "#a8856b" },
