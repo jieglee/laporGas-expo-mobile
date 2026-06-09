@@ -7,6 +7,7 @@ function decodeBase64(str: string) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
     let output = "";
     str = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (str.length % 4 !== 0) str += "=";
     for (let bc = 0, enc: number[] = [], i = 0; i < str.length; i++) {
         const idx = chars.indexOf(str[i]);
         if (idx === -1) continue;
@@ -21,27 +22,41 @@ function decodeBase64(str: string) {
     return output;
 }
 
+function extractUser(data: any, email: string) {
+    const src = data?.user ?? data?.user_data ?? data?.profile ?? data;
+    if (src?.id || src?.id === 0 || src?.user_id) {
+        return {
+            id: String(src.id ?? src.user_id),
+            name: src.name ?? src.username ?? email.split("@")[0],
+            role: src.role ?? "user",
+            email: src.email ?? email,
+        };
+    }
+    return null;
+}
+
+function decodeJwtPayload(token: string) {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    try {
+        const json = decodeBase64(parts[1]);
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+}
+
 export async function loginUser({ email, password }: LoginPayload) {
     const res = await api.post("/login", { email, password });
     const data = res.data?.data ?? res.data;
     const token = data?.token ?? data?.access_token;
     if (!token) throw new Error("Token tidak ditemukan");
 
-    const userFromApi = data?.user;
-    if (userFromApi?.id) {
-        return {
-            token,
-            user: {
-                id: String(userFromApi.id),
-                name: userFromApi.name ?? email.split("@")[0],
-                role: userFromApi.role ?? "user",
-                email: userFromApi.email ?? email,
-            },
-        };
-    }
+    const user = extractUser(data, email);
+    if (user) return { token, user };
 
-    try {
-        const payload = JSON.parse(decodeBase64(token.split(".")[1]));
+    const payload = decodeJwtPayload(token);
+    if (payload) {
         return {
             token,
             user: {
@@ -51,9 +66,17 @@ export async function loginUser({ email, password }: LoginPayload) {
                 email,
             },
         };
-    } catch {
-        throw new Error("Gagal memproses data pengguna");
     }
+
+    return {
+        token,
+        user: {
+            id: email,
+            name: email.split("@")[0],
+            role: "user",
+            email,
+        },
+    };
 }
 
 export async function registerUser({ name, email, password }: RegisterPayload) {

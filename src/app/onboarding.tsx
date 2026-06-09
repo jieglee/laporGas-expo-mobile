@@ -5,7 +5,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const { width } = Dimensions.get("window");
@@ -117,13 +116,11 @@ export default function OnboardingPage() {
 
     const handleSkip = () => setShowChoice(true);
 
-    const goLogin = async () => {
-        await AsyncStorage.setItem("onboarding_done", "true");
+    const goLogin = () => {
         router.replace("/(auth)/login" as any);
     };
 
-    const goRegister = async () => {
-        await AsyncStorage.setItem("onboarding_done", "true");
+    const goRegister = () => {
         router.replace("/(auth)/register" as any);
     };
 
@@ -139,13 +136,6 @@ export default function OnboardingPage() {
                     <Text style={styles.logoText}>LaporGas</Text>
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    {/* DEV ONLY — hapus sebelum production */}
-                    <TouchableOpacity onPress={async () => {
-                        await AsyncStorage.removeItem("onboarding_done");
-                        alert("Reset! Restart app.");
-                    }}>
-                    </TouchableOpacity>
-
                     {activeIndex < SLIDES.length - 1 && (
                         <TouchableOpacity onPress={handleSkip}>
                             <Text style={styles.skipText}>Lewati</Text>

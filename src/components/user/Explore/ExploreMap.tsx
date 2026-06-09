@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
     View, Text, StyleSheet, Platform, Modal, TouchableOpacity,
-    ScrollView
+    ScrollView, Image, FlatList
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { useRouter } from "expo-router";
@@ -199,6 +199,35 @@ export default function ExploreMap({ reports }: Props) {
                                 </View>
                             </View>
 
+                            {/* Foto */}
+                            {(() => {
+                                const photos =
+                                    selected.images && selected.images.length > 0
+                                        ? selected.images
+                                        : selected.image_url
+                                        ? [selected.image_url]
+                                        : [];
+                                if (photos.length === 0) return null;
+                                return (
+                                    <View style={styles.photosWrap}>
+                                        <FlatList
+                                            data={photos}
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            keyExtractor={(_, i) => String(i)}
+                                            ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+                                            renderItem={({ item }) => (
+                                                <Image
+                                                    source={{ uri: item }}
+                                                    style={styles.photo}
+                                                    resizeMode="cover"
+                                                />
+                                            )}
+                                        />
+                                    </View>
+                                );
+                            })()}
+
                             {/* CTA */}
                             <TouchableOpacity
                                 style={styles.cta}
@@ -265,7 +294,8 @@ const styles = StyleSheet.create({
     map: { flex: 1 },
     modalWrap: { flex: 1, justifyContent: "flex-end" },
     backdrop: {
-        ...StyleSheet.absoluteFill,
+        position: "absolute" as const,
+        top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: "rgba(0,0,0,0.4)",
     },
     sheet: {
@@ -320,4 +350,15 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     ctaText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+    photosWrap: {
+        marginBottom: 16,
+        marginHorizontal: -20,
+        paddingHorizontal: 20,
+    },
+    photo: {
+        width: 200,
+        height: 130,
+        borderRadius: 12,
+        backgroundColor: "#f0e6dc",
+    },
 });
