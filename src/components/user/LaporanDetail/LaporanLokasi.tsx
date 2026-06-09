@@ -13,7 +13,25 @@ export default function LaporanLokasi({ report }: { report: Report }) {
         </View>
     );
 
-    const mapUrl = `https://maps.google.com/maps?q=${report.latitude},${report.longitude}&z=15&output=embed`;
+    const mapHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; }
+                html, body { width: 100%; height: 100%; }
+                iframe { width: 100%; height: 100%; border: none; display: block; }
+            </style>
+        </head>
+        <body>
+            <iframe
+                src="https://maps.google.com/maps?q=${report.latitude},${report.longitude}&z=15&output=embed"
+                loading="lazy"
+            ></iframe>
+        </body>
+        </html>
+    `;
 
     return (
         <View style={styles.card}>
@@ -26,11 +44,11 @@ export default function LaporanLokasi({ report }: { report: Report }) {
 
             <View style={styles.mapWrap}>
                 <WebView
-                    source={{ uri: mapUrl }}
+                    source={{ html: mapHtml }}
                     style={styles.webview}
                     scrollEnabled={false}
-                    // Nonaktifkan zoom gesture biar gak confict sama scroll parent
                     scalesPageToFit={false}
+                    originWhitelist={['*']}
                 />
             </View>
 
@@ -49,7 +67,6 @@ const styles = StyleSheet.create({
     headerIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center" },
     label: { fontSize: 13, fontWeight: "700", color: "#1a0e08" },
     mapWrap: { height: 200 },
-    // WebView perlu flex: 1 atau dimensi eksplisit biar kerender
     webview: { flex: 1 },
     addressRow: { padding: 14, borderTopWidth: 0.5, borderTopColor: "#f5ede3" },
     address: { fontSize: 12, color: "#6b5546", lineHeight: 18 },

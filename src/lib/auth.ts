@@ -23,17 +23,31 @@ function decodeBase64(str: string) {
 
 export async function loginUser({ email, password }: LoginPayload) {
     const res = await api.post("/login", { email, password });
-    const token = res.data?.data?.token;
+    const data = res.data?.data ?? res.data;
+    const token = data?.token ?? data?.access_token;
     if (!token) throw new Error("Token tidak ditemukan");
+
+    const userFromApi = data?.user;
+    if (userFromApi?.id) {
+        return {
+            token,
+            user: {
+                id: String(userFromApi.id),
+                name: userFromApi.name ?? email.split("@")[0],
+                role: userFromApi.role ?? "user",
+                email: userFromApi.email ?? email,
+            },
+        };
+    }
 
     try {
         const payload = JSON.parse(decodeBase64(token.split(".")[1]));
         return {
             token,
             user: {
-                id: String(payload.id),
-                name: payload.name,
-                role: payload.role,
+                id: String(payload.sub ?? payload.id ?? payload.user_id),
+                name: payload.name ?? payload.username ?? email.split("@")[0],
+                role: payload.role ?? "user",
                 email,
             },
         };
