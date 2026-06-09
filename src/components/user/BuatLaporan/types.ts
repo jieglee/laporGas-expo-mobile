@@ -3,6 +3,8 @@ export interface FormState {
   description: string;
   category_id: string;
   location: string;
+  latitude: string;
+  longitude: string;
   priority: string;
   images: string[];
 }
@@ -21,20 +23,9 @@ export const PRIORITIES = [
   { value: "urgent", label: "Urgent", desc: "Darurat/berbahaya", dot: "#B91C1C", bg: "#FEE2E2", color: "#991B1B" },
 ];
 
-export interface FormState {
-  title: string;
-  description: string;
-  category_id: string;
-  location: string;
-  latitude: string;
-  longitude: string;
-  priority: string;
-  images: string[];
-}
-
 export function isFormValid(f: FormState): boolean {
   return f.title.trim().length >= 5 &&
     f.description.trim().length >= 20 &&
-    !!f.category_id && !!f.priority && !!f.latitude;
+    !!f.category_id && !!f.priority;
 }
 

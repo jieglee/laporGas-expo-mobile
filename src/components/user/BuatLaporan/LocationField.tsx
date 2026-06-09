@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
     StyleSheet, ActivityIndicator, Alert, Platform,
@@ -56,6 +56,10 @@ export default function LocationField({ location, latitude, longitude, onChange 
     const [gpsLoading, setGpsLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
 
+    useEffect(() => {
+        if (location && !query) setQuery(location);
+    }, [location]);
+
     const doSearch = async (q: string) => {
         if (q.trim().length < 3) { setResults([]); setShowDropdown(false); return; }
         try {
@@ -84,6 +88,18 @@ export default function LocationField({ location, latitude, longitude, onChange 
         onChange("", "", "");
     };
 
+    const reverseGeocode = async (lat: number, lng: number) => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
+            );
+            const data = await res.json();
+            return data.display_name ?? `${lat}, ${lng}`;
+        } catch {
+            return `${lat}, ${lng}`;
+        }
+    };
+
     const getGPS = async () => {
         try {
             setGpsLoading(true);
@@ -91,11 +107,7 @@ export default function LocationField({ location, latitude, longitude, onChange 
                 navigator.geolocation.getCurrentPosition(
                     async (pos) => {
                         const { latitude: lat, longitude: lng } = pos.coords;
-                        const res = await fetch(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
-                        );
-                        const data = await res.json();
-                        const address = data.display_name ?? `${lat}, ${lng}`;
+                        const address = await reverseGeocode(lat, lng);
                         const short = address.split(",").slice(0, 3).join(", ");
                         setQuery(short);
                         onChange(String(lat), String(lng), address);
@@ -106,14 +118,10 @@ export default function LocationField({ location, latitude, longitude, onChange 
                 return;
             }
             const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") { Alert.alert("Izin lokasi diperlukan"); return; }
+            if (status !== "granted") { Alert.alert("Izin lokasi diperlukan"); setGpsLoading(false); return; }
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
             const { latitude: lat, longitude: lng } = loc.coords;
-            const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
-            );
-            const data = await res.json();
-            const address = data.display_name ?? `${lat}, ${lng}`;
+            const address = await reverseGeocode(lat, lng);
             const short = address.split(",").slice(0, 3).join(", ");
             setQuery(short);
             onChange(String(lat), String(lng), address);

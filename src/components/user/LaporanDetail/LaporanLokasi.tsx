@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { MapPin } from "lucide-react-native";
+import { WebView } from "react-native-webview";
 import type { Report } from "@/lib/report";
 
 export default function LaporanLokasi({ report }: { report: Report }) {
@@ -24,18 +25,13 @@ export default function LaporanLokasi({ report }: { report: Report }) {
             </View>
 
             <View style={styles.mapWrap}>
-                {Platform.OS === "web" ? (
-                    // @ts-ignore
-                    <iframe
-                        src={mapUrl}
-                        width="100%"
-                        height="200"
-                        style={{ border: "none", display: "block", width: "100%", height: "100%" }}
-                        loading="lazy"
-                    />
-                ) : (
-                    <Text style={styles.nativeText}>Buka di perangkat untuk melihat peta</Text>
-                )}
+                <WebView
+                    source={{ uri: mapUrl }}
+                    style={styles.webview}
+                    scrollEnabled={false}
+                    // Nonaktifkan zoom gesture biar gak confict sama scroll parent
+                    scalesPageToFit={false}
+                />
             </View>
 
             {report.location && (
@@ -53,7 +49,8 @@ const styles = StyleSheet.create({
     headerIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: "#FFF5EE", alignItems: "center", justifyContent: "center" },
     label: { fontSize: 13, fontWeight: "700", color: "#1a0e08" },
     mapWrap: { height: 200 },
-    nativeText: { padding: 16, color: "#a8856b", fontSize: 12, textAlign: "center", marginTop: 60 },
+    // WebView perlu flex: 1 atau dimensi eksplisit biar kerender
+    webview: { flex: 1 },
     addressRow: { padding: 14, borderTopWidth: 0.5, borderTopColor: "#f5ede3" },
     address: { fontSize: 12, color: "#6b5546", lineHeight: 18 },
     empty: { backgroundColor: "#fff", borderRadius: 20, padding: 28, alignItems: "center", gap: 8, borderWidth: 0.5, borderColor: "#f0e6dc" },
