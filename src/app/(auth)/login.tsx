@@ -37,6 +37,7 @@ export default function LoginPage() {
             let msg = "Email atau password salah";
             if (typeof data === "string") msg = data;
             else if (data?.message) msg = data.message;
+            else if (err?.message) msg = err.message;
             setError(msg);
         } finally { setLoading(false); }
     };

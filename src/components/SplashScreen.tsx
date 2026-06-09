@@ -14,28 +14,38 @@ export default function SplashScreen({ isVisible, onExitComplete }: Props) {
   const opacity = useRef(new Animated.Value(0)).current;
   const logoY = useRef(new Animated.Value(20)).current;
   const borderRadius = useRef(new Animated.Value(0)).current;
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    animRef.current?.stop();
     if (isVisible) {
-      Animated.parallel([
+      animRef.current = Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(logoY, { toValue: 0, duration: 700, useNativeDriver: true }),
-      ]).start();
+      ]);
+      animRef.current.start();
     } else {
-      // Animasi border radius dulu, lalu slide up — sama kayak web
-      Animated.parallel([
+      animRef.current = Animated.parallel([
         Animated.timing(translateY, {
           toValue: -height,
           duration: 1100,
-          useNativeDriver: false, // harus false karena borderRadius
+          useNativeDriver: false,
         }),
         Animated.timing(borderRadius, {
           toValue: width * 0.6,
           duration: 1100,
           useNativeDriver: false,
         }),
-      ]).start(() => onExitComplete?.());
+      ]);
+      animRef.current.start(() => { if (mounted.current) onExitComplete?.(); });
     }
+    return () => animRef.current?.stop();
   }, [isVisible]);
 
   return (

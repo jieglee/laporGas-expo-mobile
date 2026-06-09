@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     View, Text, TextInput, TouchableOpacity,
     StyleSheet, Modal, ActivityIndicator,
@@ -23,6 +23,12 @@ export default function ForgotPasswordModal({ visible, onClose }: Props) {
     const [showPw, setShowPw] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const mounted = useRef(true);
+
+    useEffect(() => {
+        mounted.current = true;
+        return () => { mounted.current = false; };
+    }, []);
 
     const reset = () => {
         setStep("identity");
@@ -39,7 +45,10 @@ export default function ForgotPasswordModal({ visible, onClose }: Props) {
             const res = await verifyIdentity(email, name);
             if (res.verified) setStep("reset");
             else setError(res.message ?? "Email dan nama tidak cocok.");
-        } catch { setError("Terjadi kesalahan. Coba lagi."); }
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || err?.message || "Terjadi kesalahan. Coba lagi.";
+            setError(msg);
+        }
         finally { setLoading(false); }
     };
 
@@ -49,11 +58,15 @@ export default function ForgotPasswordModal({ visible, onClose }: Props) {
         setLoading(true); setError("");
         try {
             const res = await resetPasswordByName(email, name, password);
-            if (res.message?.includes("berhasil")) {
+            const successMsg = res.message ?? "";
+            if (successMsg.toLowerCase().includes("berhasil") || successMsg.toLowerCase().includes("sukses") || successMsg.toLowerCase().includes("success")) {
                 setStep("success");
-                setTimeout(handleClose, 2000);
+                setTimeout(() => { if (mounted.current) handleClose(); }, 2000);
             } else setError(res.message ?? "Gagal mengubah password.");
-        } catch { setError("Terjadi kesalahan. Coba lagi."); }
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || err?.message || "Terjadi kesalahan. Coba lagi.";
+            setError(msg);
+        }
         finally { setLoading(false); }
     };
 
